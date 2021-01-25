@@ -55,6 +55,8 @@ class dropshipping_woocommerce_wpml_addon{
 			self::$instance->includes();
 			self::$instance->is_dropshipping_activated();
 			self::$instance->is_woo_multilingual_activated();
+			self::$instance->is_wpml_activated();
+			self::$instance->is_woocommerce_activated();
 		
 		}
 		return self::$instance;	
@@ -68,13 +70,11 @@ class dropshipping_woocommerce_wpml_addon{
 	 *
 	 * @since 1.0.0
 	 * @see dropshipping_woocommerce_wpml_addon::instance()
-	 * @see run_knawat_dropshipwc_wmpl_woocommerce()
+	 * @see run_knawat_dropshipwc_wpml_woocommerce()
 	 */
 	private function __construct() {
 		
-			add_action( 'admin_notices',array($this,'is_dropshipping_plugin_activated'));
-			add_action( 'admin_notices',array($this,'is_woo_multilingual_plugin_activated'));
-			add_action( 'admin_notices',array($this,'is_woocommerce_plugin_activated'));
+			add_action( 'admin_notices',array($this,'is_recommended_plugin_activated'));
 			
 	}
 
@@ -134,7 +134,7 @@ class dropshipping_woocommerce_wpml_addon{
 	 * @return void
 	 */
 	public function init_includes() {
-		if( $this->is_woocommerce_activated() ){
+		if( $this->is_woocommerce_activated() && $this->is_wpml_activated() && $this->is_woo_multilingual_activated()){
 			require_once KNAWAT_DROPWC_PLUGIN_WMPL_DIR . 'includes/class-dropshipping-woocommerce-wpml-importer.php';
 		}
 	}
@@ -177,36 +177,6 @@ class dropshipping_woocommerce_wpml_addon{
 		}
 	}
 
-	
-	public function is_dropshipping_plugin_activated() {
-		if ( !is_plugin_active('dropshipping-woocommerce/dropshipping-woocommerce.php') ) {
-			?>
-				<div class="notice notice-error">
-					<p><?php _e( 'Dropshipping Woocommerce WPML Addon Recommend Knawat WooCommerce DropShipping as active plugin.', 'dropshipping-wmpl-woocommerce' );?></p>
-				</div>
-			<?php 
-		}
-	}
-
-	public function is_woo_multilingual_plugin_activated() {
-		if ( !is_plugin_active('woocommerce-multilingual/wpml-woocommerce.php') ) {
-			?>
-				<div class="notice notice-error">
-					<p><?php _e( 'Dropshipping Woocommerce WPML Addon Recommend WooCommerce Multilingual as active plugin.', 'dropshipping-wmpl-woocommerce' );?></p>
-				</div>
-			<?php 
-		}
-	}
-
-	public function is_woocommerce_plugin_activated() {
-		if ( !is_plugin_active('woocommerce/woocommerce.php') ) {
-			?>
-				<div class="notice notice-error">
-					<p><?php _e( 'Dropshipping Woocommerce WPML Addon Recommend WooCommerce as active plugin.', 'dropshipping-wmpl-woocommerce' );?></p>
-				</div>
-			<?php 
-		}
-	}
 
 	 /**
 	 * Check if Knawat WooCommerce DropShipping is activated
@@ -246,6 +216,59 @@ class dropshipping_woocommerce_wpml_addon{
 		}
 	}
 
+	/**
+	 * Check if WPML is activated 
+	 *
+	 * @access public
+	 * @since 1.0.0
+	 * @return void
+	 */
+
+	public function is_wpml_activated() {
+		$blog_plugins = get_option( 'active_plugins', array() );
+		$site_plugins = is_multisite() ? (array) maybe_unserialize( get_site_option('active_sitewide_plugins' ) ) : array();
+
+		if ( in_array( 'sitepress-multilingual-cms/sitepress.php', $blog_plugins ) || isset( $site_plugins['sitepress-multilingual-cms/sitepress.php'] ) ) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	/**
+	 * Check if recommended plugin is activated or not
+	 *
+	 * @access public
+	 * @since 1.0.0
+	 * @return void
+	 */
+	public function is_recommended_plugin_activated() {
+		if ( !is_plugin_active('dropshipping-woocommerce/dropshipping-woocommerce.php') ) {
+			?>
+				<div class="notice notice-error">
+					<p><?php _e( 'Dropshipping Woocommerce WPML Addon Recommend Knawat WooCommerce DropShipping as active plugin.', 'dropshipping-wmpl-woocommerce' );?></p>
+				</div>
+			<?php 
+
+		}else if ( !is_plugin_active('woocommerce-multilingual/wpml-woocommerce.php') ) {
+
+			?>
+				<div class="notice notice-error">
+					<p><?php _e( 'Dropshipping Woocommerce WPML Addon Recommend WooCommerce Multilingual as active plugin.', 'dropshipping-wmpl-woocommerce' );?></p>
+				</div>
+			<?php 
+
+		}else if ( !is_plugin_active('woocommerce/woocommerce.php') ) {
+
+			?>
+				<div class="notice notice-error">
+					<p><?php _e( 'Dropshipping Woocommerce WPML Addon Recommend WooCommerce as active plugin.', 'dropshipping-wmpl-woocommerce' );?></p>
+				</div>
+			<?php 
+			
+		}
+	}
+
 }
 endif;
 
@@ -258,16 +281,16 @@ endif;
  * Use this function like you would a global variable, except without needing
  * to declare the global.
  *
- * Example: <?php $knawat_dropshipwc_wmpl = run_knawat_dropshipwc_wmpl_woocommerce(); ?>
+ * Example: <?php $knawat_dropshipwc_wmpl = run_knawat_dropshipwc_wpml_woocommerce(); ?>
  *
  * @since 1.0.0
  * @return object|dropshipping_woocommerce_wpml_addon The one true dropshipping_woocommerce_wpml_addon Instance.
  */
-function run_knawat_dropshipwc_wmpl_woocommerce() {
+function run_knawat_dropshipwc_wpml_woocommerce() {
 	return dropshipping_woocommerce_wpml_addon::instance();
 }
 
 // Get dropshipping_woocommerce_wpml_addon Running.
 global $knawatdswc_wmpl_errors, $knawatdswc_wmpl_success, $knawatdswc_wmpl_warnings;
-$GLOBALS['knawat_dropshipwc_wmpl'] = run_knawat_dropshipwc_wmpl_woocommerce();
+$GLOBALS['knawat_dropshipwc_wmpl'] = run_knawat_dropshipwc_wpml_woocommerce();
 $knawatdswc_wmpl_errors = $knawatdswc_wmpl_success = $knawatdswc_wmpl_warnings = array();
