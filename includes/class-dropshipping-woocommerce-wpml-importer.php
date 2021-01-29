@@ -54,58 +54,64 @@ if ( class_exists( 'WCML_Editor_UI_Product_Job', false ) ) :
 				$language_count			= count($language_info);
 				$active_language    	= $language_info[$current_lng_code];
 				$language_details  	  	= apply_filters( 'wpml_post_language_details', NULL, $product_ID ) ;
+				
 				$active_language_code 	= $language_details['language_code'];
+
+				unset($language_info[$active_language_code]);
+				
 				$categories 			= $single_product->categories;
 				$attributes 			= $single_product->attributes;
 				$wc_product_attr 		= $formated_data['raw_attributes'];
 				$main_title				= $single_product->name->$active_language_code;
+				$tids 					= $this->get_translation_id($sitepress,$product_ID);
 
-				if(!empty($current_lng_code) && $language_count == 2){
-					unset($language_info[$active_language_code]);
+				
+			
+				if(!empty($language_info)):
+					foreach($language_info as $lang_key => $lang_info):
+						$_POST['data']								= '';
+						$single_productData['ID']   	  			= $product_ID;
+						$single_productData['sku']   	  			= $single_product->sku;
+						$single_productData[md5('title')] 			= $single_product->name->$lang_key;
+						$single_productData['title'] 				= $single_product->name->$lang_key;
+						
+						$single_productData[md5('slug')]  			= sanitize_title($single_product->name->$lang_key);
+						$single_productData[md5('product_excerpt')] = '';
+
+						$single_productData[md5('post_content')] 	= $single_product->description->$lang_key;
+						$single_productData['name'] 	  			= $single_product->name->$lang_key;
 					
-					if (version_compare(PHP_VERSION, '7.3.0') >= 0):
-						$another_language = array_key_first($language_info);
-					else:
-						$another_language = array_keys($language_info);
-						$another_language = $another_language[0];
-					endif;
-				}
+						$jobID										= $this->get_job_id($lang_key,$tids);
 
-				
-				$categories_data 									= $this->product_taxonomy_data($categories,$active_language_code,$another_language);
-				$attributes_data 									= $this->product_attributes_data($product_ID,$attributes,$active_language_code,$another_language);
-				$single_productData['ID']   	  					= $product_ID;
-				$single_productData['sku']   	  					= $single_product->sku;
-				$single_productData[md5('title')] 					= $single_product->name->$another_language;
-				
-				$single_productData[md5('slug')]  					= '';
-				$single_productData[md5('product_excerpt')]  		= '';
+						$job_details['job_id']			  			= $product_ID;
+						$job_details['target']			  			= $lang_key;
+						$job_details['job_type']			  		= 'post_product';
 
-				$single_productData[md5('post_content')] 			= $single_product->description->$another_language;
-				$single_productData['name'] 	  					= $single_product->name->$another_language;
-				$jobID												= $this->get_job_id($main_title);
-				$job_details['job_id']			  					= $product_ID;
-				$job_details['target']			  					= $another_language;
-				$job_details['job_type']			  				= 'post_product';
-				
-				$postData											= 'job_post_type=post_product&job_post_id='.$product_ID.'&job_id='.$jobID.'&source_lang='.$active_language_code.'&target_lang='.$another_language.'&'.$attributes_data.$categories_data;
-				$_POST['data'] 										= $postData;
-			
-			
-				$save_product	= new WCML_Editor_UI_Product_Job($job_details, $woocommerce_wpml, $sitepress, $wpdb);
-				$save_product->save_translations($single_productData);
+						$categories_data 							= $this->product_taxonomy_data($categories,$active_language_code,$lang_key);
+						$attributes_data 							= $this->product_attributes_data($product_ID,$attributes,$active_language_code,$lang_key);
+						$post_data_string							= $this->post_data_string($single_product,$product_ID,$jobID,$attributes_data,$categories_data,$active_language_code,$lang_key);
+
+					
+						$_POST['data'] 								= $post_data_string;
+
+						$save_product	= new WCML_Editor_UI_Product_Job($job_details, $woocommerce_wpml, $sitepress, $wpdb);
+						$save_product->save_translations($single_productData);
+
+					endforeach;
+				endif;
 			}
 		}
 
 		/**
-		 * get category from the API for translation 
+		 * Get category from the API for translation 
 		 */
-		public function product_taxonomy_data($categories,$current_lng_code,$another_language){
+		public function product_taxonomy_data($categories,$active_language_code,$lang_key){
 			if(!empty($categories)){
 				$taxonomy_string				= '';
 				foreach($categories as $category){
-						$category_name 			= $category->name->$current_lng_code;
-						$category_trans_name 	= $category->name->$another_language;
+					
+						$category_name 			= $category->name->$active_language_code;
+						$category_trans_name 	= $category->name->$lang_key;
 						$category_treeNodeLevel = $category->treeNodeLevel;
 						$term_data 				= get_term_by('name',$category_name,'product_cat');
 						
@@ -127,18 +133,18 @@ if ( class_exists( 'WCML_Editor_UI_Product_Job', false ) ) :
 		/**
 		 * Get attribute from the API for translation 
 		 */
-		public function product_attributes_data($product_ID,$attributes_list,$current_lng_code,$another_language){
+		public function product_attributes_data($product_ID,$attributes_list,$active_language_code,$lang_key){
 			$variation_string				= '';
 			$attribute_string				= '';
 			global $product;
-
+		
 			if(!empty($attributes_list)){
 				foreach($attributes_list as $attributes){
 
-					$att_name 				= sanitize_title($attributes->name->$current_lng_code);
-					$att_name_ 				= sanitize_title($attributes->name->$current_lng_code).'_name';
+					$att_name 				= sanitize_title($attributes->name->$active_language_code);
+					$att_name_ 				= sanitize_title($attributes->name->$active_language_code).'_name';
 				
-					$att_trans_name 		= $attributes->name->$another_language;
+					$att_trans_name 		= $attributes->name->$lang_key;
 					$attr_options			= $attributes->options;
 					
 					$attribute_string 		.= "fields[$att_name_][data]=".$att_trans_name;
@@ -150,41 +156,107 @@ if ( class_exists( 'WCML_Editor_UI_Product_Job', false ) ) :
 					if(!empty($attr_options)){
 						foreach($attr_options as $key => $variation){
 
-								$att_tran_value 		  = $variation->$another_language;
-								$att_orig_value 		  = $variation->$current_lng_code;
+								$att_tran_value 		  = $variation->$lang_key;
+								$att_orig_value 		  = $variation->$active_language_code;
+								$att_var_data 			  = get_term_by('name',$att_orig_value,'pa_'.$att_name);
 								
 								$attribute_string .= "fields[$att_name][data]=".$att_tran_value;
 								$attribute_string .= "&fields[$att_name][tid]=0";
 								$attribute_string .= "&fields[$att_name][format]=base64&";
 						}
 					}	
+
+					if(!empty($attr_options)){
+						foreach($attr_options as $key => $variation){
+
+								$att_tran_value 		  = $variation->$lang_key;
+								$att_orig_value 		  = $variation->$active_language_code;
+								$var_data 				  = get_term_by('name',$att_orig_value,'pa_'.$att_name);
+							
+								if(!empty($var_data)){
+									$var_id 		   = $var_data->term_id;
+									$variation_string .= "fields[t_$var_id][data]=".$att_tran_value;
+									$variation_string .= "&fields[t_$var_id][tid]=0";
+									$variation_string .= "&fields[t_$var_id][format]=base64&";
+								}
+						}
+					}
 				}
 			}
+
 			
-			return $attribute_string;
+			return $attribute_string.$variation_string;
 		}
 
 		/**
 		 * Get job id from the product title.
 		 * 
-		 * @param string $main_title product main title
+		 * @param string $lang_key product language key
 		 * @return int
 		 * @since 1.0.0
 		 */
 
 		/**
-		 * get job id from the product title
+		 * Get job id from the product title
 		 */
-		public function get_job_id($main_title){
-			if(!empty($main_title)){
+		public function get_job_id($lang_key,$tids){
+			if(!empty($lang_key)){
 				global $wpdb;
-				$pattern 	= "/'/i";
-				$main_title = preg_replace($pattern, "\'", $main_title);
-				$jobID 		= $wpdb->get_row("SELECT * FROM {$wpdb->prefix}icl_translate_job WHERE `title` LIKE '".$main_title."' ");
-				$job_id		= $jobID->job_id;
+				$product_job_id = $wpdb->get_var(
+					$wpdb->prepare(
+						"SELECT MAX(tj.job_id) FROM {$wpdb->prefix}icl_translate_job AS tj
+									 LEFT JOIN {$wpdb->prefix}icl_translation_status AS ts
+									 ON tj.rid = ts.rid WHERE ts.translation_id=%d",
+						$tids[ $lang_key ]
+					)
+				);
+				$job_id		= $product_job_id;
 			}
 			return $job_id;
 		}
+
+		/**
+		 * Create post data string to pass
+		 */
+		public function post_data_string($single_product,$product_ID,$jobID,$attributes_data,$categories_data,$active_language_code,$lang_key){
+			
+			$pro_title											= $single_product->name->$lang_key;
+			$pro_desc											= $single_product->description->$lang_key;
+			$pro_slug											= sanitize_title($single_product->name->$lang_key);
+			$title												= 'fields[title][data]='.$pro_title.'&fields[title][tid]=0&fields[title][format]=base64&';
+			$slug												= 'fields[slug][data]='.$pro_slug.'&fields[slug][tid]=0&fields[slug][format]=base64&';
+			$product_content									= 'product_content_original=&fields[product_content][data]='.$pro_desc.'&fields[product_content][tid]=0&fields[product_content][format]=base64&';
+			$product_excerpt									= 'product_excerpt_original=&fields[product_excerpt][data]=&fields[product_excerpt][tid]=0&fields[product_excerpt][format]=base64&';
+			$purchase_note										= 'fields[_purchase_note][data]=&fields[_purchase_note][tid]=0&fields[_purchase_note][format]=base64&';
+
+			$starting_string 									= $title.$slug.$product_content.$product_excerpt.$purchase_note;
+			$postData											= 'job_post_type=post_product&job_post_id='.$product_ID.'&job_id='.$jobID.'&source_lang='.$active_language_code.'&target_lang='.$lang_key.'&'.$starting_string.'&'.$attributes_data.$categories_data;
+			$postData											= mb_substr($postData, 0, -1);
+			
+			return $postData;
+		}
+
+
+		/**
+		 * Get translation id from Product id 
+		 */
+		public function get_translation_id($sitepress,$product_ID){
+				$translated_ids = array();
+				if(!isset($sitepress)) return;
+			
+				$trid 			= $sitepress->get_element_trid($product_ID, 'post_product');
+				$translations 	= $sitepress->get_element_translations($trid, 'product');
+
+				if(!empty($translations)){
+					foreach( $translations as $lang =>$translation){
+						$translated_ids[$translation->language_code] = $translation->translation_id;
+						
+					}
+				}
+
+			return $translated_ids;
+		}
+
 	}
 
 endif;
