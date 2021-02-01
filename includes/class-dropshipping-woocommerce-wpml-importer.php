@@ -61,36 +61,35 @@ if ( class_exists( 'WCML_Editor_UI_Product_Job', false ) ) :
 				$wc_product_attr	= $formated_data['raw_attributes'];
 				$main_title			= $single_product->name->$active_language_code;
 				$tids				= $this->get_translation_id($sitepress,$product_ID);
+				$import_prd_lang 	= array_keys((array)$single_product->name);
 
-				
 				if(!empty($language_info)):
 					foreach($language_info as $lang_key => $lang_info):
+						if(in_array($lang_key,$import_prd_lang)){
+							$_POST['data']							= '';
+							$single_productData['ID']				= $product_ID;
+							$single_productData['sku']				= $single_product->sku;
+							$single_productData[md5('title')]		= $single_product->name->$lang_key;
+							$single_productData['title']			= $single_product->name->$lang_key;
+							
+							$single_productData[md5('slug')]		= sanitize_title($single_product->name->$lang_key);
+							$single_productData[md5('product_excerpt')] = '';
+							$single_productData[md5('post_content')]	= $single_product->description->$lang_key;
+							$single_productData['name']				= $single_product->name->$lang_key;
+							$jobID									= $this->get_job_id($lang_key,$tids);
+							$job_details['job_id']					= $product_ID;
+							$job_details['target']					= $lang_key;
+							$job_details['job_type']				= 'post_product';
 
-						$_POST['data']							= '';
-						$single_productData['ID']   	  		= $product_ID;
-						$single_productData['sku']   	  		= $single_product->sku;
-						$single_productData[md5('title')] 		= $single_product->name->$lang_key;
-						$single_productData['title'] 			= $single_product->name->$lang_key;
-						
-						$single_productData[md5('slug')]  		= sanitize_title($single_product->name->$lang_key);
-						$single_productData[md5('product_excerpt')] = '';
-						$single_productData[md5('post_content')]	= $single_product->description->$lang_key;
-						$single_productData['name']				= $single_product->name->$lang_key;
-						$jobID									= $this->get_job_id($lang_key,$tids);
+							$categories_data 						= $this->product_taxonomy_data($categories,$active_language_code,$lang_key);
+							$attributes_data 						= $this->product_attributes_data($product_ID,$attributes,$active_language_code,$lang_key);
+							$post_data_string						= $this->post_data_string($single_product,$product_ID,$jobID,$attributes_data,$categories_data,$active_language_code,$lang_key);
 
-						$job_details['job_id']			  		= $product_ID;
-						$job_details['target']			  		= $lang_key;
-						$job_details['job_type']			  	= 'post_product';
+							$_POST['data']							= $post_data_string;
 
-						$categories_data 						= $this->product_taxonomy_data($categories,$active_language_code,$lang_key);
-						$attributes_data 						= $this->product_attributes_data($product_ID,$attributes,$active_language_code,$lang_key);
-						$post_data_string						= $this->post_data_string($single_product,$product_ID,$jobID,$attributes_data,$categories_data,$active_language_code,$lang_key);
-
-						$_POST['data']							= $post_data_string;
-
-						$save_product							= new WCML_Editor_UI_Product_Job($job_details, $woocommerce_wpml, $sitepress, $wpdb);
-						$save_product->save_translations($single_productData);
-
+							$save_product							= new WCML_Editor_UI_Product_Job($job_details, $woocommerce_wpml, $sitepress, $wpdb);
+							$save_product->save_translations($single_productData);
+						}
 					endforeach;
 				endif;
 			}

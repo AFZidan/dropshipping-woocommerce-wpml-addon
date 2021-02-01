@@ -246,15 +246,27 @@ class dropshipping_woocommerce_wpml_addon{
 		$knawat_drp_plugin 		 	= 'https://wordpress.org/plugins/dropshipping-woocommerce';
 		$woo_plugin 	 			= 'https://wordpress.org/plugins/woocommerce';
 		$woo_multi_plugin 			= 'https://wordpress.org/plugins/woocommerce-multilingual';
-		
 
-		if ( !is_plugin_active('dropshipping-woocommerce/dropshipping-woocommerce.php') || !is_plugin_active('woocommerce-multilingual/wpml-woocommerce.php') || !is_plugin_active('woocommerce/woocommerce.php') ) {
+		if ( !is_plugin_active('dropshipping-woocommerce/dropshipping-woocommerce.php')) {
 			?>
 				<div class="notice notice-error">
-					<p><?php _e( 'Knawat WooCommerce DropShipping WPML Addon needs <a href="'.$knawat_drp_plugin.'" target="_blank">Knawat WooCommerce DropShipping</a>, <a href="'.$woo_plugin.'" target="_blank"> WooCommerce </a> and <a href="'.$woo_multi_plugin.'" target="_blank">WooCommerce Multilingual</a> plugins installed and activated.' );?></p>
+					<p><?php _e( 'Knawat WooCommerce DropShipping WPML Addon needs <a href="'.$knawat_drp_plugin.'" target="_blank">Knawat WooCommerce DropShipping</a> plugins installed and activated.' );?></p>
 				</div>
 			<?php 
 
+		}else if(!is_plugin_active('woocommerce-multilingual/wpml-woocommerce.php')){
+			?>
+				<div class="notice notice-error">
+					<p><?php _e( 'Knawat WooCommerce DropShipping WPML Addon needs <a href="'.$woo_multi_plugin.'" target="_blank">WooCommerce Multilingual</a> plugins installed and activated.' );?></p>
+				</div>
+			<?php 
+
+		}else if(!is_plugin_active('woocommerce/woocommerce.php')){
+			?>
+				<div class="notice notice-error">
+					<p><?php _e( 'Knawat WooCommerce DropShipping WPML Addon needs <a href="'.$woo_plugin.'" target="_blank"> WooCommerce </a> plugins installed and activated.' );?></p>
+				</div>
+			<?php 
 		}
 	}
 
