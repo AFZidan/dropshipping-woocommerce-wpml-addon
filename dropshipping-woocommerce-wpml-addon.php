@@ -56,7 +56,7 @@ class dropshipping_woocommerce_wpml_addon{
 			self::$instance->is_dropshipping_activated();
 			self::$instance->is_woo_multilingual_activated();
 			self::$instance->is_wpml_activated();
-			self::$instance->is_woocommerce_activated();
+			self::$instance->is_woocommerce_activated().'sd';
 		
 		}
 		return self::$instance;	
@@ -172,6 +172,8 @@ class dropshipping_woocommerce_wpml_addon{
 		if ( in_array( 'woocommerce/woocommerce.php', $blog_plugins ) || isset( $site_plugins['woocommerce/woocommerce.php'] ) ) {
 			return true;
 		}
+
+		return false;
 	}
 
 
@@ -190,6 +192,8 @@ class dropshipping_woocommerce_wpml_addon{
 		if ( in_array( 'dropshipping-woocommerce/dropshipping-woocommerce.php', $blog_plugins ) || isset( $site_plugins['dropshipping-woocommerce/dropshipping-woocommerce.php'] ) ) {
 			return true;
 		}
+
+		return false;
 	}
 
 	 /**
@@ -207,6 +211,8 @@ class dropshipping_woocommerce_wpml_addon{
 		if ( in_array( 'woocommerce-multilingual/wpml-woocommerce.php', $blog_plugins ) || isset( $site_plugins['woocommerce-multilingual/wpml-woocommerce.php'] ) ) {
 			return true;
 		}
+		
+		return false;
 	}
 
 	/**
@@ -224,6 +230,8 @@ class dropshipping_woocommerce_wpml_addon{
 		if ( in_array( 'sitepress-multilingual-cms/sitepress.php', $blog_plugins ) || isset( $site_plugins['sitepress-multilingual-cms/sitepress.php'] ) ) {
 			return true;
 		}
+
+		return false;
 	}
 
 	/**
