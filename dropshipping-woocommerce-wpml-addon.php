@@ -56,7 +56,7 @@ class dropshipping_woocommerce_wpml_addon{
 			self::$instance->is_dropshipping_activated();
 			self::$instance->is_woo_multilingual_activated();
 			self::$instance->is_wpml_activated();
-			self::$instance->is_woocommerce_activated().'sd';
+			self::$instance->is_woocommerce_activated();
 		
 		}
 		return self::$instance;	
