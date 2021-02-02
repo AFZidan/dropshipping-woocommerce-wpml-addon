@@ -243,28 +243,19 @@ class dropshipping_woocommerce_wpml_addon{
 	 */
 	public function is_recommended_plugin_activated() {
 
-		$knawat_drp_plugin 		 	= 'https://wordpress.org/plugins/dropshipping-woocommerce';
-		$woo_plugin 	 			= 'https://wordpress.org/plugins/woocommerce';
-		$woo_multi_plugin 			= 'https://wordpress.org/plugins/woocommerce-multilingual';
+		$msg_string[]	= (!$this->is_dropshipping_activated() ? '<a href="https://wordpress.org/plugins/dropshipping-woocommerce" target="_blank"> Knawat WooCommerce DropShipping</a>' : '');
 
-		if ( !is_plugin_active('dropshipping-woocommerce/dropshipping-woocommerce.php')) {
+		$msg_string[]	= (!$this->is_woocommerce_activated() ? '<a href="https://wordpress.org/plugins/woocommerce" target="_blank"> WooCommerce</a>':'');
+
+		$msg_string[]	= (!$this->is_woo_multilingual_activated() ? '<a href="https://wordpress.org/plugins/woocommerce-multilingual" target="_blank"> WooCommerce Multilingual</a>' : '');
+
+		$msg_string 	= array_filter($msg_string);
+		$plugin_count 	= count($msg_string);
+
+		if($plugin_count != 0){
 			?>
 				<div class="notice notice-error">
-					<p><?php _e( 'Knawat WooCommerce DropShipping WPML Addon needs <a href="'.$knawat_drp_plugin.'" target="_blank">Knawat WooCommerce DropShipping</a> plugins installed and activated.' );?></p>
-				</div>
-			<?php 
-
-		}else if(!is_plugin_active('woocommerce-multilingual/wpml-woocommerce.php')){
-			?>
-				<div class="notice notice-error">
-					<p><?php _e( 'Knawat WooCommerce DropShipping WPML Addon needs <a href="'.$woo_multi_plugin.'" target="_blank">WooCommerce Multilingual</a> plugins installed and activated.' );?></p>
-				</div>
-			<?php 
-
-		}else if(!is_plugin_active('woocommerce/woocommerce.php')){
-			?>
-				<div class="notice notice-error">
-					<p><?php _e( 'Knawat WooCommerce DropShipping WPML Addon needs <a href="'.$woo_plugin.'" target="_blank"> WooCommerce </a> plugins installed and activated.' );?></p>
+					<p><?php echo vsprintf("Knawat WooCommerce DropShipping WPML Addon needs %s plugins installed and activated",implode(',',$msg_string));?></p>
 				</div>
 			<?php 
 		}
