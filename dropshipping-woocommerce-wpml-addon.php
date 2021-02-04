@@ -8,7 +8,7 @@
  * Author URI:        https://www.knawat.com/?utm_source=wordpress.org&utm_medium=social&utm_campaign=The%20WC%20Plugin
  * License:           GPL-2.0+
  * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
- * Text Domain:       dropshipping-wmpl-woocommerce
+ * Text Domain:       dropshipping_wpml_woocommerce
  * Domain Path:       /languages
  * WC requires at least: 3.3.0
  * WC tested up to: 4.8.0
@@ -95,28 +95,28 @@ class dropshipping_woocommerce_wpml_addon{
     private function setup_constants() {
 
 		// Plugin version.
-		if( ! defined( 'KNAWAT_DROPWC_WMPL_VERSION' ) ){
-			define( 'KNAWAT_DROPWC_WMPL_VERSION', '1.0.0' );
+		if( ! defined( 'KNAWAT_DROPWC_WPML_VERSION' ) ){
+			define( 'KNAWAT_DROPWC_WPML_VERSION', '1.0.0' );
 		}
 
 		// Plugin folder Path.
-		if( ! defined( 'KNAWAT_DROPWC_PLUGIN_WMPL_DIR' ) ){
-			define( 'KNAWAT_DROPWC_PLUGIN_WMPL_DIR', plugin_dir_path( __FILE__ ) );
+		if( ! defined( 'KNAWAT_DROPWC_PLUGIN_WPML_DIR' ) ){
+			define( 'KNAWAT_DROPWC_PLUGIN_WPML_DIR', plugin_dir_path( __FILE__ ) );
 		}
 
 		// Plugin folder URL.
-		if( ! defined( 'KNAWAT_DROPWC_PLUGIN_WMPL_URL' ) ){
-			define( 'KNAWAT_DROPWC_PLUGIN_WMPL_URL', plugin_dir_url( __FILE__ ) );
+		if( ! defined( 'KNAWAT_DROPWC_PLUGIN_WPML_URL' ) ){
+			define( 'KNAWAT_DROPWC_PLUGIN_WPML_URL', plugin_dir_url( __FILE__ ) );
 		}
 
 		// Plugin root file.
-		if( ! defined( 'KNAWAT_DROPWC_PLUGIN_WMPL_FILE' ) ){
-			define( 'KNAWAT_DROPWC_PLUGIN_WMPL_FILE', __FILE__ );
+		if( ! defined( 'KNAWAT_DROPWC_PLUGIN_WPML_FILE' ) ){
+			define( 'KNAWAT_DROPWC_PLUGIN_WPML_FILE', __FILE__ );
 		}
 
 		// Options
-		if( ! defined( 'KNAWAT_DROPWC_WMPL_OPTIONS' ) ){
-			define( 'KNAWAT_DROPWC_WMPL_OPTIONS', 'knawat_dropshipwc_wmpl_options' );
+		if( ! defined( 'KNAWAT_DROPWC_WPML_OPTIONS' ) ){
+			define( 'KNAWAT_DROPWC_WPML_OPTIONS', 'knawat_dropshipwc_wpml_options' );
 		}
 
 	}

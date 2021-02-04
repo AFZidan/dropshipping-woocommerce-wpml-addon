@@ -37,53 +37,49 @@ if ( class_exists( 'WCML_Editor_UI_Product_Job', false ) ) :
 		 * @return void
 		 */
 		public function __construct( ) {
-				add_action( 'wpml_import_translation_product',array($this,'get_product_formated'), 10, 3);
+			add_action( 'wpml_import_translation_product',array($this,'get_product_formated'), 10, 2);
 		}
 
 	
 		/**
-		 * Format product data to insert in WPML
-		 */
-		public function get_product_formated($product_ID,$single_product,$formated_data){
+		 * Convert product translation data
+		*/
+		public function get_product_formated($product_ID,$single_product){
 			if(!empty($product_ID)){
 				
 				global $sitepress,$wpdb,$woocommerce_wpml;
 
 				$single_productData = array();
-				$another_language   = array();
 				$language_info		= icl_get_languages();
 				$language_details	= apply_filters( 'wpml_post_language_details', NULL, $product_ID ) ;
-				$active_language_code	= $language_details['language_code'];
+				$active_language_code	= $sitepress->get_default_language();
 				unset($language_info[$active_language_code]);
 				
 				$categories			= $single_product->categories;
 				$attributes			= $single_product->attributes;
-				$wc_product_attr	= $formated_data['raw_attributes'];
-				$main_title			= $single_product->name->$active_language_code;
 				$tids				= $this->get_translation_id($sitepress,$product_ID);
 				$import_prd_lang 	= array_keys((array)$single_product->name);
 
 				if(!empty($language_info)):
 					foreach($language_info as $lang_key => $lang_info):
 						if(in_array($lang_key,$import_prd_lang)){
-							$_POST['data']							= '';
-							$single_productData['ID']				= $product_ID;
-							$single_productData['sku']				= $single_product->sku;
-							$single_productData[md5('title')]		= $single_product->name->$lang_key;
-							$single_productData['title']			= $single_product->name->$lang_key;
-							
-							$single_productData[md5('slug')]		= sanitize_title($single_product->name->$lang_key);
-							$single_productData[md5('product_excerpt')] = '';
-							$single_productData[md5('post_content')]	= $single_product->description->$lang_key;
-							$single_productData['name']				= $single_product->name->$lang_key;
-							$jobID									= $this->get_job_id($lang_key,$tids);
-							$job_details['job_id']					= $product_ID;
-							$job_details['target']					= $lang_key;
-							$job_details['job_type']				= 'post_product';
 
-							$categories_data 						= $this->product_taxonomy_data($categories,$active_language_code,$lang_key);
-							$attributes_data 						= $this->product_attributes_data($product_ID,$attributes,$active_language_code,$lang_key);
-							$post_data_string						= $this->post_data_string($single_product,$product_ID,$jobID,$attributes_data,$categories_data,$active_language_code,$lang_key);
+							$post_title 								= mb_convert_encoding($single_product->name->$lang_key,"HTML-ENTITIES","UTF-8");
+							$single_productData[md5('title')]			= sanitize_text_field($post_title);
+							$single_productData[md5('post_title')]		= sanitize_text_field($post_title);
+							$single_productData[md5('slug')]			= sanitize_title($post_title);
+							$single_productData[md5('post_name')]		= sanitize_text_field($post_title);
+							$single_productData[md5('post_content')]	= $single_product->description->$lang_key;
+							$single_productData[md5('product_excerpt')] = '';
+
+							$jobID										= $this->get_job_id($lang_key,$tids);
+							$job_details['job_id']						= $product_ID;
+							$job_details['target']						= $lang_key;
+							$job_details['job_type']					= 'post_product';
+							
+							$categories_data 					= $this->product_taxonomy_data($categories,$active_language_code,$lang_key);
+							$attributes_data 					= $this->product_attributes_data($product_ID,$attributes,$active_language_code,$lang_key);
+							$post_data_string					= $this->post_data_string($single_product,$product_ID,$jobID,$attributes_data,$categories_data,$active_language_code,$lang_key);
 
 							$_POST['data']							= $post_data_string;
 
