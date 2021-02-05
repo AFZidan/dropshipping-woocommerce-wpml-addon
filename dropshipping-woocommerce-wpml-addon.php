@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name:       Knawat WooCommerce DropShipping WPML Support
- * Plugin URI:        https://wordpress.org/plugins/dropshipping-woocommerce/
+ * Plugin URI:        https://wordpress.org/plugins/dropshipping-woocommerce-wpml-addon
  * Description:       Knawat WooCommerce DropShipping WPML Support
  * Version:           1.0.0
  * Author:            Knawat
@@ -51,12 +51,6 @@ class dropshipping_woocommerce_wpml_addon{
 
 			add_action( 'plugins_loaded', array( self::$instance, 'load_textdomain' ) );
 			add_action( 'init', array( self::$instance, 'init_includes' ) );
-
-			self::$instance->is_dropshipping_activated();
-			self::$instance->is_woo_multilingual_activated();
-			self::$instance->is_wpml_activated();
-			self::$instance->is_woocommerce_activated();
-		
 		}
 		return self::$instance;	
 		
