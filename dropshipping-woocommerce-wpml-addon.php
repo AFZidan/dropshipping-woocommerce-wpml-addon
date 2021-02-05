@@ -73,9 +73,7 @@ class dropshipping_woocommerce_wpml_addon{
 	 * @see run_knawat_dropshipwc_wpml_woocommerce()
 	 */
 	private function __construct() {
-		
 			add_action( 'admin_notices',array($this,'is_recommended_plugin_activated'));
-			
 	}
 
 	/**
@@ -83,14 +81,14 @@ class dropshipping_woocommerce_wpml_addon{
 	 *
 	 * @since 1.0.0
 	 */
-	public function __clone() { _doing_it_wrong( __FUNCTION__, __( 'Cheatin&#8217; huh?', 'dropshipping-wmpl-woocommerce-support' ), '1.0.0' ); }
+	public function __clone() { _doing_it_wrong( __FUNCTION__, __( 'Cheatin&#8217; huh?', 'dropshipping_wpml_woocommerce' ), '1.0.0' ); }
 
 	/**
 	 * A dummy magic method to prevent dropshipping_woocommerce_wpml_addon from being unserialized.
 	 *
 	 * @since 1.0.0
 	 */
-	public function __wakeup() { _doing_it_wrong( __FUNCTION__, __( 'Cheatin&#8217; huh?', 'dropshipping-wmpl-woocommerce-support' ), '1.0.0' ); }
+	public function __wakeup() { _doing_it_wrong( __FUNCTION__, __( 'Cheatin&#8217; huh?', 'dropshipping_wpml_woocommerce' ), '1.0.0' ); }
     
     private function setup_constants() {
 
@@ -119,11 +117,6 @@ class dropshipping_woocommerce_wpml_addon{
 			define( 'KNAWAT_DROPWC_WPML_OPTIONS', 'knawat_dropshipwc_wpml_options' );
 		}
 
-	}
-
-    private function includes() {
-
-        
 	}
 
 	/**
@@ -243,21 +236,17 @@ class dropshipping_woocommerce_wpml_addon{
 	 */
 	public function is_recommended_plugin_activated() {
 
-		$msg_string[]	= (!$this->is_dropshipping_activated() ? '<a href="https://wordpress.org/plugins/dropshipping-woocommerce" target="_blank"> Knawat WooCommerce DropShipping</a>' : '');
+		$msg_string[]	= (!$this->is_dropshipping_activated() ? '<a href="'.admin_url( "plugin-install.php?tab=plugin-information&plugin=dropshipping-woocommerce&TB_iframe=true&width=600&height=550" ).'" class="thickbox open-plugin-details-modal" > Knawat WooCommerce DropShipping</a>':'');
+			
+		$msg_string[]	= (!$this->is_woocommerce_activated() ? '<a href="'.admin_url( "plugin-install.php?tab=plugin-information&plugin=woocommerce&TB_iframe=true&width=600&height=550" ).'" class="thickbox open-plugin-details-modal"> WooCommerce</a>':'');
 
-		$msg_string[]	= (!$this->is_woocommerce_activated() ? '<a href="https://wordpress.org/plugins/woocommerce" target="_blank"> WooCommerce</a>':'');
-
-		$msg_string[]	= (!$this->is_woo_multilingual_activated() ? '<a href="https://wordpress.org/plugins/woocommerce-multilingual" target="_blank"> WooCommerce Multilingual</a>' : '');
+		$msg_string[]	= (!$this->is_woo_multilingual_activated() ? '<a href="'.admin_url( "plugin-install.php?tab=plugin-information&plugin=woocommerce-multilingual&TB_iframe=true&width=600&height=550" ).'" class="thickbox open-plugin-details-modal"> WooCommerce Multilingual</a>' : '');
 
 		$msg_string 	= array_filter($msg_string);
 		$plugin_count 	= count($msg_string);
 
 		if($plugin_count != 0){
-			?>
-				<div class="notice notice-error">
-					<p><?php echo vsprintf("Knawat WooCommerce DropShipping WPML Addon needs %s plugins installed and activated",implode(',',$msg_string));?></p>
-				</div>
-			<?php 
+			echo sprintf('<div class="notice notice-error"><p>Knawat WooCommerce DropShipping WPML Addon needs %s plugins installed and activated</p></div>',implode(',',$msg_string));
 		}
 	}
 
