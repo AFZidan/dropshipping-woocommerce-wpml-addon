@@ -52,7 +52,6 @@ class dropshipping_woocommerce_wpml_addon{
 			add_action( 'plugins_loaded', array( self::$instance, 'load_textdomain' ) );
 			add_action( 'init', array( self::$instance, 'init_includes' ) );
 
-			self::$instance->includes();
 			self::$instance->is_dropshipping_activated();
 			self::$instance->is_woo_multilingual_activated();
 			self::$instance->is_wpml_activated();
@@ -143,7 +142,7 @@ class dropshipping_woocommerce_wpml_addon{
 	public function load_textdomain(){
 		
 		load_plugin_textdomain(
-			'dropshipping-wmpl-woocommerce',
+			'dropshipping_wpml_woocommerce',
 			false,
 			basename( dirname( __FILE__ ) ) . '/languages'
 		);
