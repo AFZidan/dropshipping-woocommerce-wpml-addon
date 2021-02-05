@@ -31,7 +31,7 @@ class dropshipping_woocommerce_wpml_addon{
 	private static $instance;
 
     /**
-     * Main Knawat Dropshipping Woocommerce Instance.
+     * Main Knawat WooCommerce DropShipping WPML Support Instance.
      * 
      * Insure that only one instance of dropshipping_woocommerce_wpml_addon exists in memory at any one time.
      * Also prevents needing to define globals all over the place.
@@ -39,10 +39,10 @@ class dropshipping_woocommerce_wpml_addon{
      * @since 1.0.0
      * @static object $instance
      * @uses dropshipping_woocommerce_wpml_addon::setup_constants() Setup the constants needed.
-     * @uses dropshipping_woocommerce_wpml_addon::includes() Include the required files.
+     * @uses dropshipping_woocommerce_wpml_addon::init_includes() Include the required files.
      * @uses dropshipping_woocommerce_wpml_addon::laod_textdomain() load the language files.
-     * @see run_knawat_dropshipwc_woocommerce()
-     * @return object| Knawat Dropshipping Woocommerce the one true Knawat Dropshipping Woocommerce.
+     * @see run_knawat_dropshipwc_wpml_woocommerce()
+     * @return object| Knawat WooCommerce DropShipping WPML Support the one true Knawat WooCommerce DropShipping WPML Support.
      */
 	public static function instance() {
 		if( ! isset( self::$instance ) && ! (self::$instance instanceof dropshipping_woocommerce_wpml_addon ) ) {
@@ -261,7 +261,7 @@ endif;
  * Use this function like you would a global variable, except without needing
  * to declare the global.
  *
- * Example: <?php $knawat_dropshipwc_wmpl = run_knawat_dropshipwc_wpml_woocommerce(); ?>
+ * Example: <?php $knawat_dropshipwc_wpml = run_knawat_dropshipwc_wpml_woocommerce(); ?>
  *
  * @since 1.0.0
  * @return object|dropshipping_woocommerce_wpml_addon The one true dropshipping_woocommerce_wpml_addon Instance.
@@ -271,6 +271,5 @@ function run_knawat_dropshipwc_wpml_woocommerce() {
 }
 
 // Get dropshipping_woocommerce_wpml_addon Running.
-global $knawatdswc_wmpl_errors, $knawatdswc_wmpl_success, $knawatdswc_wmpl_warnings;
-$GLOBALS['knawat_dropshipwc_wmpl'] = run_knawat_dropshipwc_wpml_woocommerce();
-$knawatdswc_wmpl_errors = $knawatdswc_wmpl_success = $knawatdswc_wmpl_warnings = array();
+$GLOBALS['knawat_dropshipwc_wpml'] = run_knawat_dropshipwc_wpml_woocommerce();
+
