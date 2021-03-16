@@ -38,6 +38,7 @@ if ( class_exists( 'WCML_Editor_UI_Product_Job', false ) ) :
 		 */
 		public function __construct( ) {
 			add_action( 'wpml_import_translation_product',array($this,'get_product_formated'), 10, 2);
+			add_action( 'remove_stokout_product',array($this,'remove_outof_stock'), 10, 1);
 		}
 
 	
@@ -49,8 +50,8 @@ if ( class_exists( 'WCML_Editor_UI_Product_Job', false ) ) :
 				
 				global $sitepress,$wpdb,$woocommerce_wpml;
 
-				$language_info		= icl_get_languages();
-				$language_details	= apply_filters( 'wpml_post_language_details', NULL, $product_ID ) ;
+				$language_info			= icl_get_languages();
+				$language_details		= apply_filters( 'wpml_post_language_details', NULL, $product_ID ) ;
 				$active_language_code	= $sitepress->get_default_language();
 				unset($language_info[$active_language_code]);
 				
@@ -241,6 +242,65 @@ if ( class_exists( 'WCML_Editor_UI_Product_Job', false ) ) :
 
 			return $translated_ids;
 		}
+
+
+		/**
+		 * Remove out of stock product
+		 */
+		public function remove_outof_stock($productID){
+			try{
+				if(!empty($productID)){
+					$product_info = $this->product_information($productID);
+					if(!empty($product_info)){
+						foreach($product_info as $pro_info){
+								wp_delete_post($productID,true);  
+						}
+					}
+				}
+
+			}catch (Exception $ex) {
+				//skip it
+			}
+		}
+
+		/**
+		 * Get product language code from ID
+		 * @param productID
+		 */
+		public function product_language_information($productID){
+
+			if(!empty($productID)):
+
+				$post_language_information	= apply_filters( 'wpml_post_language_details', NULL, $productID );
+				$language_code 				= $post_language_information['language_code'];
+
+			endif;
+
+			return $language_code;
+		}
+
+		/**
+		 * Get translated product information
+		 * @param product_ID
+		 */
+		Public function product_information($product_ID){
+			global $sitepress;
+			$translated_ids = array();
+			if(!isset($sitepress)) return;
+			$post_id = $product_ID; // Your original product ID
+			$trid = $sitepress->get_element_trid($post_id,'post_product');
+			$translations = $sitepress->get_element_translations($trid,'product');
+			foreach( $translations as $lang=>$translation){
+				$other_ID						= $translation->element_id;
+				$product_lang 					= $this->product_language_information($other_ID);
+				$translated_ids[$product_lang] 	= $other_ID;
+				
+			}
+
+			return $translated_ids;
+		}
+
+
 
 	}
 

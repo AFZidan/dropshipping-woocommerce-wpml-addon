@@ -121,7 +121,7 @@ class dropshipping_woocommerce_wpml_addon{
 	 */
 	public function init_includes() {
 		if( $this->is_woocommerce_activated() && $this->is_wpml_activated() && $this->is_woo_multilingual_activated()){
-			require_once KNAWAT_DROPWC_PLUGIN_WMPL_DIR . 'includes/class-dropshipping-woocommerce-wpml-importer.php';
+			require_once KNAWAT_DROPWC_PLUGIN_WPML_DIR . 'includes/class-dropshipping-woocommerce-wpml-importer.php';
 		}
 	}
 	
