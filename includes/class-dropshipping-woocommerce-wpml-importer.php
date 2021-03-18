@@ -251,9 +251,17 @@ if ( class_exists( 'WCML_Editor_UI_Product_Job', false ) ) :
 			try{
 				if(!empty($productID)){
 					$product_info = $this->product_information($productID);
+					
 					if(!empty($product_info)){
 						foreach($product_info as $pro_info){
-								wp_delete_post($productID,true);  
+							$this->delete_wp_product($pro_info);  
+						}
+						if (!empty($_GET) && wp_verify_nonce($_GET['update_knawat_product_nonce'], 'update_knawat_product_action' ) ) {
+							$product_id = (int) $_GET['product_id'];
+							if (!empty($product_id)){
+								wp_redirect(admin_url('edit.php?post_type=product'));
+								exit;
+							}	
 						}
 					}
 				}
@@ -270,9 +278,11 @@ if ( class_exists( 'WCML_Editor_UI_Product_Job', false ) ) :
 		public function product_language_information($productID){
 
 			if(!empty($productID)):
-
+				$language_code 				= ''; 
 				$post_language_information	= apply_filters( 'wpml_post_language_details', NULL, $productID );
-				$language_code 				= $post_language_information['language_code'];
+				if(!is_wp_error($post_language_information)){
+					$language_code 			= $post_language_information['language_code'];
+				}
 
 			endif;
 
@@ -298,6 +308,27 @@ if ( class_exists( 'WCML_Editor_UI_Product_Job', false ) ) :
 			}
 
 			return $translated_ids;
+		}
+
+
+		/**
+		 * Delete product along with the meta
+		 */
+		function delete_wp_product($product_ID){
+			global $wpdb;
+			$wpdb->query( 
+				$wpdb->prepare("
+					DELETE posts,pt,pm
+					FROM {$wpdb->prefix}posts posts
+					LEFT JOIN {$wpdb->prefix}term_relationships pt ON pt.object_id = posts.ID
+					LEFT JOIN {$wpdb->prefix}postmeta pm ON pm.post_id = posts.ID
+					WHERE posts.post_type = 'product'
+					AND posts.ID = %s
+					", 
+					$product_ID
+				) 
+			);
+			
 		}
 
 
