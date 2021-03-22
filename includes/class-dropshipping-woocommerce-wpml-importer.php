@@ -254,7 +254,7 @@ if ( class_exists( 'WCML_Editor_UI_Product_Job', false ) ) :
 					
 					if(!empty($product_info)){
 						foreach($product_info as $pro_info){
-							$this->delete_wp_product($pro_info);  
+							$this->wc_deleteProduct($pro_info);  
 						}
 						if (!empty($_GET) && wp_verify_nonce($_GET['update_knawat_product_nonce'], 'update_knawat_product_action' ) ) {
 							$product_id = (int) $_GET['product_id'];
@@ -311,29 +311,47 @@ if ( class_exists( 'WCML_Editor_UI_Product_Job', false ) ) :
 		}
 
 
+
 		/**
-		 * Delete product along with the meta
-		 */
-		function delete_wp_product($product_ID){
-			global $wpdb;
-			$wpdb->query( 
-				$wpdb->prepare("
-					DELETE posts,pt,pm
-					FROM {$wpdb->prefix}posts posts
-					LEFT JOIN {$wpdb->prefix}term_relationships pt ON pt.object_id = posts.ID
-					LEFT JOIN {$wpdb->prefix}postmeta pm ON pm.post_id = posts.ID
-					WHERE posts.post_type = 'product'
-					AND posts.ID = %s
-					", 
-					$product_ID
-				) 
-			);
-			
+		* Method to delete Woo Product
+		*
+		* @param int $id the product ID.
+		* @param bool $force true to permanently delete product, false to move to trash.
+		* @return WP_Error|boolean
+		*/
+		public function wc_deleteProduct($product_ID){
+			try{
+
+				$product = wc_get_product($product_ID);
+				if(empty($product)){
+					return false;
+				}
+				
+				if ($product->is_type('variable')){
+					foreach ($product->get_children() as $child_id)
+					{
+						$child = wc_get_product($child_id);
+						$child->delete();
+					}
+				}
+
+				$product->delete(true);
+				$result = $product->get_id() > 0 ? false : true;
+				
+				if ($parent_id = wp_get_post_parent_id($product_ID)){
+					wc_delete_product_transients($parent_id);
+				}
+				return true;
+
+			}catch (Exception $ex) {
+					//skip it
+			}
+
 		}
 
 
 
-	}
+}
 
 
 add_action( 'init', 'WPML_Woocommerce_Importer' );
