@@ -256,13 +256,6 @@ if ( class_exists( 'WCML_Editor_UI_Product_Job', false ) ) :
 						foreach($product_info as $pro_info){
 							$this->wc_deleteProduct($pro_info);  
 						}
-						if (!empty($_GET) && wp_verify_nonce($_GET['update_knawat_product_nonce'], 'update_knawat_product_action' ) ) {
-							$product_id = (int) $_GET['product_id'];
-							if (!empty($product_id)){
-								wp_redirect(admin_url('edit.php?post_type=product'));
-								exit;
-							}	
-						}
 					}
 				}
 
