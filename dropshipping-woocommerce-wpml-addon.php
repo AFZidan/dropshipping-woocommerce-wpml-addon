@@ -125,28 +125,27 @@ if ( ! class_exists( 'Dropshipping_Woocommerce_WPML_Addon' ) ) :
 		 */
 		public function init_includes() {
 			if ( $this->is_woocommerce_activated() && $this->is_wpml_activated() && $this->is_woo_multilingual_activated() ) {
-				require_once KNAWAT_DROPWC_PLUGIN_WMPL_DIR . 'includes/class-dropshipping-woocommerce-wpml-importer.php';
+				require_once KNAWAT_DROPWC_PLUGIN_WPML_DIR . 'includes/class-dropshipping-woocommerce-wpml-importer.php';
 			}
 		}
 
 
 		/**
-		 * Loads the plugin language files.
-		 *
-		 * @access public
-		 * @since 1.0.0
-		 * @return void
-		 */
-		public function load_textdomain() {
-
+		* Loads the plugin language files.
+		* 
+		* @access public
+		* @since 1.0.0
+		* @return void
+		*/
+		public function load_textdomain(){
+			
 			load_plugin_textdomain(
-				'dropshipping-woocommerce-wpml-addon',
+				'dropshipping_wpml_woocommerce',
 				false,
 				basename( dirname( __FILE__ ) ) . '/languages'
 			);
-
-		}
-
+		
+    }
 
 		/**
 		 * Check if woocommerce is activated

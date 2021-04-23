@@ -36,8 +36,9 @@ if ( class_exists( 'WCML_Editor_UI_Product_Job', false ) ) :
 		 * @access public
 		 * @return void
 		 */
-		public function __construct() {
-			add_action( 'wpml_import_translation_product', array( $this, 'get_product_formated' ), 10, 2 );
+		public function __construct( ) {
+			add_action( 'wpml_import_translation_product',array($this,'get_product_formated'), 10, 2);
+			add_action( 'remove_stokout_product',array($this,'remove_outof_stock'), 10, 1);
 		}
 
 
@@ -49,42 +50,42 @@ if ( class_exists( 'WCML_Editor_UI_Product_Job', false ) ) :
 
 				global $sitepress,$wpdb,$woocommerce_wpml;
 
-				$language_info        = icl_get_languages();
-				$language_details     = apply_filters( 'wpml_post_language_details', null, $product_ID );
-				$active_language_code = $sitepress->get_default_language();
-				unset( $language_info[ $active_language_code ] );
+				$language_info			= icl_get_languages();
+				$language_details		= apply_filters( 'wpml_post_language_details', NULL, $product_ID ) ;
+				$active_language_code	= $sitepress->get_default_language();
+				unset($language_info[$active_language_code]);
+				
+				$categories			= $single_product->categories;
+				$attributes			= $single_product->attributes;
+				$tids				= $this->get_translation_id($sitepress,$product_ID);
+				$import_prd_lang 	= array_keys((array)$single_product->name);
 
-				$categories      = $single_product->categories;
-				$attributes      = $single_product->attributes;
-				$tids            = $this->get_translation_id( $sitepress, $product_ID );
-				$import_prd_lang = array_keys( (array) $single_product->name );
+				if(!empty($language_info)):
+					foreach($language_info as $lang_key => $lang_info):
+						if(in_array($lang_key,$import_prd_lang)){
+							$single_productData 						= array();
+							$post_title 								= sanitize_text_field($single_product->name->$lang_key);
+							$single_productData[md5('title')]			= sanitize_text_field($post_title);
+							$single_productData[md5('post_title')]		= sanitize_text_field($post_title);
+							$single_productData[md5('slug')]			= sanitize_title($post_title);
+							$single_productData[md5('post_name')]		= sanitize_text_field($post_title);
+							$single_productData[md5('post_content')]	= $single_product->description->$lang_key;
+							$single_productData[md5('product_excerpt')] = '';
 
-				if ( ! empty( $language_info ) ) :
-					foreach ( $language_info as $lang_key => $lang_info ) :
-						if ( in_array( $lang_key, $import_prd_lang ) ) {
-							$single_productData                             = array();
-							$post_title                                     = sanitize_text_field( $single_product->name->$lang_key );
-							$single_productData[ md5( 'title' ) ]           = sanitize_text_field( $post_title );
-							$single_productData[ md5( 'post_title' ) ]      = sanitize_text_field( $post_title );
-							$single_productData[ md5( 'slug' ) ]            = sanitize_title( $post_title );
-							$single_productData[ md5( 'post_name' ) ]       = sanitize_text_field( $post_title );
-							$single_productData[ md5( 'post_content' ) ]    = $single_product->description->$lang_key;
-							$single_productData[ md5( 'product_excerpt' ) ] = '';
+							$jobID										= $this->get_job_id($lang_key,$tids);
+							$job_details['job_id']						= $product_ID;
+							$job_details['target']						= $lang_key;
+							$job_details['job_type']					= 'post_product';
+							$_POST['data']								= '';
+							
+							$categories_data 					= $this->product_taxonomy_data($categories,$active_language_code,$lang_key);
+							$attributes_data 					= $this->product_attributes_data($product_ID,$attributes,$active_language_code,$lang_key);
+							$post_data_string					= $this->post_data_string($single_product,$product_ID,$jobID,$attributes_data,$categories_data,$active_language_code,$lang_key);
 
-							$jobID                   = $this->get_job_id( $lang_key, $tids );
-							$job_details['job_id']   = $product_ID;
-							$job_details['target']   = $lang_key;
-							$job_details['job_type'] = 'post_product';
-							$_POST['data']           = '';
+							$_POST['data']							= $post_data_string;
 
-							$categories_data  = $this->product_taxonomy_data( $categories, $active_language_code, $lang_key );
-							$attributes_data  = $this->product_attributes_data( $product_ID, $attributes, $active_language_code, $lang_key );
-							$post_data_string = $this->post_data_string( $single_product, $product_ID, $jobID, $attributes_data, $categories_data, $active_language_code, $lang_key );
-
-							$_POST['data'] = $post_data_string;
-
-							$save_product = new WCML_Editor_UI_Product_Job( $job_details, $woocommerce_wpml, $sitepress, $wpdb );
-							$save_product->save_translations( $single_productData );
+							$save_product							= new WCML_Editor_UI_Product_Job($job_details, $woocommerce_wpml, $sitepress, $wpdb);
+							$save_product->save_translations($single_productData);
 						}
 					endforeach;
 				endif;
@@ -241,7 +242,108 @@ if ( class_exists( 'WCML_Editor_UI_Product_Job', false ) ) :
 			return $translated_ids;
 		}
 
-	}
+
+		/**
+		 * Remove out of stock product
+		 */
+		public function remove_outof_stock($productID){
+			try{
+				if(!empty($productID)){
+					$product_info = $this->product_information($productID);
+					
+					if(!empty($product_info)){
+						foreach($product_info as $pro_info){
+							$this->wc_deleteProduct($pro_info);  
+						}
+					}
+				}
+
+			}catch (Exception $ex) {
+				//skip it
+			}
+		}
+
+		/**
+		 * Get product language code from ID
+		 * @param productID
+		 */
+		public function product_language_information($productID){
+
+			if(!empty($productID)):
+				$language_code 				= ''; 
+				$post_language_information	= apply_filters( 'wpml_post_language_details', NULL, $productID );
+				if(!is_wp_error($post_language_information)){
+					$language_code 			= $post_language_information['language_code'];
+				}
+
+			endif;
+
+			return $language_code;
+		}
+
+		/**
+		 * Get translated product information
+		 * @param product_ID
+		 */
+		Public function product_information($product_ID){
+			global $sitepress;
+			$translated_ids = array();
+			if(!isset($sitepress)) return;
+			$post_id = $product_ID; // Your original product ID
+			$trid = $sitepress->get_element_trid($post_id,'post_product');
+			$translations = $sitepress->get_element_translations($trid,'product');
+			foreach( $translations as $lang=>$translation){
+				$other_ID						= $translation->element_id;
+				$product_lang 					= $this->product_language_information($other_ID);
+				$translated_ids[$product_lang] 	= $other_ID;
+				
+			}
+
+			return $translated_ids;
+		}
+
+
+
+		/**
+		* Method to delete Woo Product
+		*
+		* @param int $id the product ID.
+		* @param bool $force true to permanently delete product, false to move to trash.
+		* @return WP_Error|boolean
+		*/
+		public function wc_deleteProduct($product_ID){
+			try{
+
+				$product = wc_get_product($product_ID);
+				if(empty($product)){
+					return false;
+				}
+				
+				if ($product->is_type('variable')){
+					foreach ($product->get_children() as $child_id)
+					{
+						$child = wc_get_product($child_id);
+						$child->delete();
+					}
+				}
+
+				$product->delete(true);
+				$result = $product->get_id() > 0 ? false : true;
+				
+				if ($parent_id = wp_get_post_parent_id($product_ID)){
+					wc_delete_product_transients($parent_id);
+				}
+				return true;
+
+			}catch (Exception $ex) {
+					//skip it
+			}
+
+		}
+
+
+
+}
 
 
 	add_action( 'init', 'WPML_Woocommerce_Importer' );
