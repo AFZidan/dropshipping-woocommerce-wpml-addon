@@ -345,11 +345,11 @@ if ( class_exists( 'WCML_Editor_UI_Product_Job', false ) ) :
 
 }
 
-
-	add_action( 'init', 'WPML_Woocommerce_Importer' );
-	function WPML_Woocommerce_Importer() {
-		return new Knawat_Dropshipping_wpml_Woocommerce_Importer();
-	}
+add_action( 'admin_init', 'WPML_Woocommerce_Importer' );
+add_action( 'init', 'WPML_Woocommerce_Importer' );
+function WPML_Woocommerce_Importer() {
+	return new Knawat_Dropshipping_wpml_Woocommerce_Importer();
+}
 
 
 endif;
