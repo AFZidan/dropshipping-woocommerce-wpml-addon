@@ -50,7 +50,6 @@ WooCommerce DropShipping WPML Addon Translator for WooCommerce Products, Categor
 
 
 
-
 == Changelog ==
 
 = 1.0.0 =
