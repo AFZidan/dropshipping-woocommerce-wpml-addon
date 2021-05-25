@@ -1,8 +1,8 @@
 === Knawat WooCommerce DropShipping WPML Addon ===
 Contributors: knawat,surajrathod,dharm1025
-Tags: dropshipping, woocommerce, woocommerce dropshipping, dropship, woo dropshipping, knawat, knawat dropshipping, multivendor marketplace, WCFM Marketplace, Multi seller, Marketplace, WPML Addon
+Tags: WPML Addon, knawat dropshipping, woocommerce dropshipping,woocommerce dropshipping WPML Addon,multilanguage,wooCommerce
 Requires at least: 1.0.0
-Tested up to: 4.8.0
+Tested up to: 5.7.2
 Requires PHP: 7.0
 Stable tag: 1.0.0
 
@@ -17,7 +17,9 @@ Knawat WooCommerce DropShipping WPML Addon
 
 == Features ==
 
-WooCommerce DropShipping WPML Addon Translator for WooCommerce Products, Categories, Tags
+WooCommerce DropShipping WPML Addon Adds WPML support to Knawat WooCommerce DropShipping plugin, which enable translation of Knawat products, categories and tags using WPML.
+
+This addon is comes with zero configuration you just need to install and activate. rest things will be handled automatically.
 
 
 = Contributing =
@@ -42,11 +44,6 @@ WooCommerce DropShipping WPML Addon Translator for WooCommerce Products, Categor
 3. Log into WordPress and navigate to the "Plugins" screen.
 4. Locate "Knawat WooCommerce DropShipping WPML Addon" in the list and click the "Activate" link.
 
-
-== Screenshots ==
-
-1. 
-2. 
 
 
 
