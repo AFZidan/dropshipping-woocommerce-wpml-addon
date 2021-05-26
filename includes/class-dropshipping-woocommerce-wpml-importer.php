@@ -59,10 +59,12 @@ if ( class_exists( 'WCML_Editor_UI_Product_Job', false ) ) :
 				$attributes			= $single_product->attributes;
 				$tids				= $this->get_translation_id($sitepress,$product_ID);
 				$import_prd_lang 	= array_keys((array)$single_product->name);
-
+				
 				if(!empty($language_info)):
 					foreach($language_info as $lang_key => $lang_info):
+					
 						if(in_array($lang_key,$import_prd_lang)){
+							
 							$single_productData 						= array();
 							$post_title 								= sanitize_text_field($single_product->name->$lang_key);
 							$single_productData[md5('title')]			= sanitize_text_field($post_title);
@@ -76,7 +78,7 @@ if ( class_exists( 'WCML_Editor_UI_Product_Job', false ) ) :
 							$job_details['job_id']						= $product_ID;
 							$job_details['target']						= $lang_key;
 							$job_details['job_type']					= 'post_product';
-							$_POST['data']								= '';
+							
 							
 							$categories_data 					= $this->product_taxonomy_data($categories,$active_language_code,$lang_key);
 							$attributes_data 					= $this->product_attributes_data($product_ID,$attributes,$active_language_code,$lang_key);
@@ -86,8 +88,13 @@ if ( class_exists( 'WCML_Editor_UI_Product_Job', false ) ) :
 
 							$save_product							= new WCML_Editor_UI_Product_Job($job_details, $woocommerce_wpml, $sitepress, $wpdb);
 							$save_product->save_translations($single_productData);
+							
+						
 						}
 					endforeach;
+							$_POST['data']								= '';
+							$job_details								= '';
+							$single_productData							= '';
 				endif;
 			}
 		}
