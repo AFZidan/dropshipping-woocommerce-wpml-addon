@@ -62,22 +62,25 @@ if ( class_exists( 'WCML_Editor_UI_Product_Job', false ) ) :
 				
 				if(!empty($language_info)):
 					foreach($language_info as $lang_key => $lang_info):
-					
-						if(in_array($lang_key,$import_prd_lang)){
+						$single_productData 						= array();
+						if(!empty(get_object_vars($single_product->name)[$lang_key])){
 							
-							$single_productData 						= array();
-							$post_title 								= sanitize_text_field($single_product->name->$lang_key);
-							$single_productData[md5('title')]			= sanitize_text_field($post_title);
-							$single_productData[md5('post_title')]		= sanitize_text_field($post_title);
-							$single_productData[md5('slug')]			= sanitize_title($post_title);
-							$single_productData[md5('post_name')]		= sanitize_text_field($post_title);
-							$single_productData[md5('post_content')]	= $single_product->description->$lang_key;
-							$single_productData[md5('product_excerpt')] = '';
+							
 
-							$jobID										= $this->get_job_id($lang_key,$tids);
+							$post_title 								= sanitize_text_field($single_product->name->$lang_key);
+							$post_title 								= iconv(mb_detect_encoding($post_title),'UTF-8',$post_title);
+							$single_productData[md5('title')]			= $post_title;
+							$single_productData[md5('slug')]			= sanitize_title($post_title);
+							$post_content								= $single_product->description->$lang_key;
+							$post_content 								= iconv(mb_detect_encoding($post_content),'UTF-8',$post_content);
+							$single_productData[md5('product_excerpt')] = '';
+							
 							$job_details['job_id']						= $product_ID;
-							$job_details['target']						= $lang_key;
 							$job_details['job_type']					= 'post_product';
+							$job_details['job_post_id']					= $product_ID;
+							$job_details['target']						= $lang_key;
+							$job_details['source_lang']					= 'en';
+							$job_details['job_post_type']				= 'post_product';
 							
 							
 							$categories_data 					= $this->product_taxonomy_data($categories,$active_language_code,$lang_key);
@@ -88,13 +91,12 @@ if ( class_exists( 'WCML_Editor_UI_Product_Job', false ) ) :
 
 							$save_product							= new WCML_Editor_UI_Product_Job($job_details, $woocommerce_wpml, $sitepress, $wpdb);
 							$save_product->save_translations($single_productData);
+
+							$_POST['data']							= '';
+							$single_productData						= array();
 							
-						
 						}
 					endforeach;
-							$_POST['data']								= '';
-							$job_details								= '';
-							$single_productData							= '';
 				endif;
 			}
 		}
