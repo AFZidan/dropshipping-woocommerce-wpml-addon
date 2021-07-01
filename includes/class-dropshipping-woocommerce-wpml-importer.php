@@ -65,7 +65,7 @@ if ( class_exists( 'WCML_Editor_UI_Product_Job', false ) ) :
 						$single_productData 						= array();
 						if(!empty(get_object_vars($single_product->name)[$lang_key])){
 							
-							
+							$jobID										= $this->get_job_id($lang_key,$tids);
 
 							$post_title 								= sanitize_text_field($single_product->name->$lang_key);
 							$post_title 								= iconv(mb_detect_encoding($post_title),'UTF-8',$post_title);
@@ -79,7 +79,7 @@ if ( class_exists( 'WCML_Editor_UI_Product_Job', false ) ) :
 							$job_details['job_type']					= 'post_product';
 							$job_details['job_post_id']					= $product_ID;
 							$job_details['target']						= $lang_key;
-							$job_details['source_lang']					= 'en';
+							$job_details['source_lang']					= $lang_key;
 							$job_details['job_post_type']				= 'post_product';
 							
 							
@@ -88,11 +88,9 @@ if ( class_exists( 'WCML_Editor_UI_Product_Job', false ) ) :
 							$post_data_string					= $this->post_data_string($single_product,$product_ID,$jobID,$attributes_data,$categories_data,$active_language_code,$lang_key);
 
 							$_POST['data']							= $post_data_string;
-
 							$save_product							= new WCML_Editor_UI_Product_Job($job_details, $woocommerce_wpml, $sitepress, $wpdb);
 							$save_product->save_translations($single_productData);
 
-							$_POST['data']							= '';
 							$single_productData						= array();
 							
 						}
@@ -222,9 +220,8 @@ if ( class_exists( 'WCML_Editor_UI_Product_Job', false ) ) :
 			$purchase_note   = 'fields[_purchase_note][data]=&fields[_purchase_note][tid]=0&fields[_purchase_note][format]=base64&';
 
 			$starting_string = $title . $slug . $product_content . $product_excerpt . $purchase_note;
-			$postData        = 'job_post_type=post_product&job_post_id=' . $product_ID . '&job_id=' . $jobID . '&source_lang=' . $active_language_code . '&target_lang=' . $lang_key . '&' . $starting_string . '&' . $attributes_data . $categories_data;
-			$postData        = mb_substr( $postData, 0, -1 );
-
+			$postData        = 'job_post_type=post_product&job_post_id=' . $product_ID . '&job_id=' . $jobID . '&source_lang=' . $active_language_code . '&target_lang=' . $lang_key . '&' . $starting_string . '&' . $attributes_data . $categories_data.'complete=on';
+			
 			return $postData;
 		}
 
