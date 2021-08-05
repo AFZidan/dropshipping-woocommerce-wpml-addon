@@ -59,40 +59,62 @@ if ( class_exists( 'WCML_Editor_UI_Product_Job', false ) ) :
 				$attributes			= $single_product->attributes;
 				$tids				= $this->get_translation_id($sitepress,$product_ID);
 				$import_prd_lang 	= array_keys((array)$single_product->name);
-				
-				if(!empty($language_info)):
-					foreach($language_info as $lang_key => $lang_info):
-						$single_productData 						= array();
-						if(!empty(get_object_vars($single_product->name)[$lang_key])){
-							
-							$jobID										= $this->get_job_id($lang_key,$tids);
 
+				if(!empty($language_info)):
+					$single_productData 	= array();
+
+					foreach($language_info as $lang_key => $lang_info):
+
+						if(in_array($lang_key,$import_prd_lang)){
+							
 							$post_title 								= sanitize_text_field($single_product->name->$lang_key);
 							$post_title 								= iconv(mb_detect_encoding($post_title),'UTF-8',$post_title);
 							$single_productData[md5('title')]			= $post_title;
 							$single_productData[md5('slug')]			= sanitize_title($post_title);
+
 							$post_content								= $single_product->description->$lang_key;
 							$post_content 								= iconv(mb_detect_encoding($post_content),'UTF-8',$post_content);
+							$single_productData[md5('product_content')]	= iconv('UTF-8','ASCII//TRANSLIT',$post_content);
 							$single_productData[md5('product_excerpt')] = '';
+
+							$jobID										= $this->get_job_id($lang_key,$tids);
 							
 							$job_details['job_id']						= $product_ID;
 							$job_details['job_type']					= 'post_product';
 							$job_details['job_post_id']					= $product_ID;
 							$job_details['target']						= $lang_key;
-							$job_details['source_lang']					= $lang_key;
+							$job_details['source_lang']					= $active_language_code;
 							$job_details['job_post_type']				= 'post_product';
 							
+							$categories_data_array 						= $this->product_taxonomy_data_array($categories,$active_language_code,$lang_key);
+							$attributes_data_array 						= $this->product_attributes_data_array($product_ID,$attributes,$active_language_code,$lang_key);
+							$merge_data									=  array_merge($single_productData,$categories_data_array,$attributes_data_array);
 							
 							$categories_data 					= $this->product_taxonomy_data($categories,$active_language_code,$lang_key);
 							$attributes_data 					= $this->product_attributes_data($product_ID,$attributes,$active_language_code,$lang_key);
 							$post_data_string					= $this->post_data_string($single_product,$product_ID,$jobID,$attributes_data,$categories_data,$active_language_code,$lang_key);
-
-							$_POST['data']							= $post_data_string;
-							$save_product							= new WCML_Editor_UI_Product_Job($job_details, $woocommerce_wpml, $sitepress, $wpdb);
-							$save_product->save_translations($single_productData);
-
-							$single_productData						= array();
 							
+							$_POST['data']							= $post_data_string;
+							//$save_product							= new WCML_Editor_UI_Product_Job($job_details,$woocommerce_wpml,$sitepress,$wpdb);
+
+							$data      = [];
+							$post_data = \WPML_TM_Post_Data::strip_slashes_for_single_quote( $_POST['data'] );
+							parse_str( $post_data, $data );
+							
+							$data = apply_filters( 'wpml_translation_editor_save_job_data', $data );
+							
+							$job = \WPML\Container\make( \WPML_TM_Editor_Job_Save::class );
+							
+							$job_details = [
+								'job_type'             => $data['job_post_type'],
+								'job_id'               => $data['job_post_id'],
+								'target'               => $data['target_lang'],
+								'translation_complete' => isset( $data['complete'] ) ? true : false,
+							];
+							$job         = apply_filters( 'wpml-translation-editor-fetch-job', $job, $job_details );
+							
+							$job->save( $data );
+							$this->save_translations($merge_data);
 						}
 					endforeach;
 				endif;
@@ -122,6 +144,31 @@ if ( class_exists( 'WCML_Editor_UI_Product_Job', false ) ) :
 				}
 			}
 			return $taxonomy_string;
+		}
+
+
+		/**
+		 * Create product category/taxonomy array
+		 */
+		public function product_taxonomy_data_array( $categories, $active_language_code, $lang_key ) {
+			if ( ! empty( $categories ) ) {
+				$taxonomy_array = array();
+				foreach ( $categories as $category ) {
+
+						$category_name          = $category->name->$active_language_code;
+						$category_trans_name    = $category->name->$lang_key;
+						$category_treeNodeLevel = $category->treeNodeLevel;
+						$term_data              = get_term_by( 'name', $category_name, 'product_cat' );
+
+					if ( ! empty( $term_data ) ) {
+							$term_id = $term_data->term_id;
+							
+							$taxonomy_array[md5('t_'.$term_id)]  .= $category_trans_name;
+					}
+				}
+				
+			}
+			return $taxonomy_array;
 		}
 
 
@@ -180,6 +227,58 @@ if ( class_exists( 'WCML_Editor_UI_Product_Job', false ) ) :
 			return $attribute_string . $variation_string;
 		}
 
+
+		/**
+		 * Create product attribute/variation array.
+		 */
+		public function product_attributes_data_array( $product_ID, $attributes_list, $active_language_code, $lang_key ) {
+			
+			$variation_array = array();
+			$attribute_array = array();
+			global $product;
+
+			if ( ! empty( $attributes_list ) ) {
+				foreach ( $attributes_list as $attributes ) {
+
+					$att_name        = sanitize_title( $attributes->name->$active_language_code );
+					$att_format_name = sanitize_title( $attributes->name->$active_language_code ) . '_name';
+					$att_trans_name  = $attributes->name->$lang_key;
+					$attr_options    = $attributes->options;
+
+					$attribute_array[md5($att_format_name)]  = $att_trans_name;
+
+					if ( ! empty( $attr_options ) ) {
+						foreach ( $attr_options as $key => $variation ) {
+
+								$att_tran_value = $variation->$lang_key;
+								$att_orig_value = $variation->$active_language_code;
+								$att_var_data   = get_term_by( 'name', $att_orig_value, 'pa_' . $att_name );
+
+								$attribute_array[md5($att_name)]  = $att_tran_value;
+						}
+					}
+
+					if ( ! empty( $attr_options ) ) {
+						foreach ( $attr_options as $key => $variation ) {
+
+								$att_tran_value = $variation->$lang_key;
+								$att_orig_value = $variation->$active_language_code;
+								$var_data       = get_term_by( 'name', $att_orig_value, 'pa_' . $att_name );
+
+							if ( ! empty( $var_data ) ) {
+
+								$var_id            = $var_data->term_id;
+								$variation_array[md5("t_".$var_id)]  = $att_tran_value;
+							}
+						}
+					}
+				}
+			}
+			
+			$att_array = array_merge($attribute_array,$variation_array);
+			return $att_array;
+		}
+
 		/**
 		 * Get the latest job id.
 		 *
@@ -205,11 +304,14 @@ if ( class_exists( 'WCML_Editor_UI_Product_Job', false ) ) :
 		}
 
 
-		/**
+	/**
 		 * Create post data string from all the data
 		 */
 		public function post_data_string( $single_product, $product_ID, $jobID, $attributes_data, $categories_data, $active_language_code, $lang_key ) {
 
+			$categories_data = !empty($categories_data) ? $categories_data : "";
+			$attributes_data = !empty($attributes_data) ? $attributes_data : "";
+			
 			$pro_title       = sanitize_text_field( $single_product->name->$lang_key );
 			$pro_desc        = $single_product->description->$lang_key;
 			$pro_slug        = sanitize_title( $single_product->name->$lang_key );
