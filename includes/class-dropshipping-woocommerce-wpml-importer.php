@@ -46,6 +46,14 @@ if ( class_exists( 'WCML_Editor_UI_Product_Job', false ) ) :
 		 * Convert product translation data
 		 */
 		public function get_product_formated( $product_ID, $single_product ) {
+
+			/**
+			 * Remove Fetuared Image By Plugin Action
+			 */
+
+			add_filter( "option_knawatfibu_options", "wpml_dropship_disable_fibu_plugin",  99, 2 );
+
+
 			if ( ! empty( $product_ID ) ) {
 
 				global $sitepress,$wpdb,$woocommerce_wpml;
@@ -60,10 +68,11 @@ if ( class_exists( 'WCML_Editor_UI_Product_Job', false ) ) :
 				$tids				= $this->get_translation_id($sitepress,$product_ID);
 				$import_prd_lang 	= array_keys((array)$single_product->name);
 
-				if(!empty($language_info)):
+				if(!empty($language_info)){
+
 					$single_productData 	= array();
 
-					foreach($language_info as $lang_key => $lang_info):
+					foreach($language_info as $lang_key => $lang_info){
 
 						if(in_array($lang_key,$import_prd_lang)){
 							
@@ -95,7 +104,7 @@ if ( class_exists( 'WCML_Editor_UI_Product_Job', false ) ) :
 							$post_data_string					= $this->post_data_string($single_product,$product_ID,$jobID,$attributes_data,$categories_data,$active_language_code,$lang_key);
 							
 							$_POST['data']							= $post_data_string;
-							//$save_product							= new WCML_Editor_UI_Product_Job($job_details,$woocommerce_wpml,$sitepress,$wpdb);
+							
 
 							$data      = [];
 							$post_data = \WPML_TM_Post_Data::strip_slashes_for_single_quote( $_POST['data'] );
@@ -114,10 +123,13 @@ if ( class_exists( 'WCML_Editor_UI_Product_Job', false ) ) :
 							$job         = apply_filters( 'wpml-translation-editor-fetch-job', $job, $job_details );
 							
 							$job->save( $data );
-							$this->save_translations($merge_data);
+							
 						}
-					endforeach;
-				endif;
+					}
+
+						$merge_data 		= array_merge([],$single_productData,$categories_data_array,$attributes_data_array);
+						$this->save_translations($merge_data);
+				}
 			}
 		}
 
@@ -275,8 +287,7 @@ if ( class_exists( 'WCML_Editor_UI_Product_Job', false ) ) :
 				}
 			}
 			
-			$att_array = array_merge($attribute_array,$variation_array);
-			return $att_array;
+			return array_merge($attribute_array,$variation_array);
 		}
 
 		/**
@@ -458,6 +469,25 @@ add_action( 'init', 'WPML_Woocommerce_Importer' );
 function WPML_Woocommerce_Importer() {
 	return new Knawat_Dropshipping_wpml_Woocommerce_Importer();
 }
-
-
+add_filter( 'wpml-translation-editor-fetch-job', 'wpml_dropship_disable_fibu_plugin2', 0, 2 );
 endif;
+
+
+function wpml_dropship_disable_fibu_plugin2($value, $option) {
+	add_filter( "option_knawatfibu_options", "wpml_dropship_disable_fibu_plugin",  99, 2 );
+	return $value;
+}
+
+function wpml_dropship_disable_fibu_plugin($value, $option){
+	if(empty($value)){
+		$value = array();
+	}
+	$disabled_posttypes = isset( $value['disabled_posttypes'] ) ? $value['disabled_posttypes']  : array();
+	if(is_array($disabled_posttypes)){
+		if(!in_array( 'product', $disabled_posttypes )){
+			$value['disabled_posttypes'][] = 'product';
+		};
+	}
+	return $value;
+}
+
