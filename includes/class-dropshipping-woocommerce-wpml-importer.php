@@ -22,7 +22,7 @@ if ( ! class_exists( 'WCML_Editor_UI_Product_Job', false ) ) {
 	include_once WCML_PLUGIN_PATH . '/inc/translation-editor/class-wcml-editor-ui-product-job.php';
 }
 
-if ( class_exists( 'WCML_Editor_UI_Product_Job', false ) ) :
+if ( class_exists( 'WCML_Editor_UI_Product_Job', false ) ){
 
 	/**
 	 * Knawat_Dropshipping_wpml_Woocommerce_Importer Class.
@@ -388,14 +388,14 @@ if ( class_exists( 'WCML_Editor_UI_Product_Job', false ) ) :
 		 */
 		public function product_language_information($productID){
 
-			if(!empty($productID)):
+			if(!empty($productID)){
 				$language_code 				= ''; 
 				$post_language_information	= apply_filters( 'wpml_post_language_details', NULL, $productID );
 				if(!is_wp_error($post_language_information)){
 					$language_code 			= $post_language_information['language_code'];
 				}
 
-			endif;
+			}
 
 			return $language_code;
 		}
@@ -464,13 +464,14 @@ if ( class_exists( 'WCML_Editor_UI_Product_Job', false ) ) :
 
 }
 
-add_action( 'admin_init', 'WPML_Woocommerce_Importer' );
-add_action( 'init', 'WPML_Woocommerce_Importer' );
-function WPML_Woocommerce_Importer() {
-	return new Knawat_Dropshipping_wpml_Woocommerce_Importer();
+	add_action( 'admin_init', 'WPML_Woocommerce_Importer' );
+	add_action( 'init', 'WPML_Woocommerce_Importer' );
+	function WPML_Woocommerce_Importer() {
+		return new Knawat_Dropshipping_wpml_Woocommerce_Importer();
+	}
+
+	add_filter( 'wpml-translation-editor-fetch-job', 'wpml_dropship_disable_fibu_plugin2', 0, 2 );
 }
-add_filter( 'wpml-translation-editor-fetch-job', 'wpml_dropship_disable_fibu_plugin2', 0, 2 );
-endif;
 
 
 function wpml_dropship_disable_fibu_plugin2($value, $option) {
