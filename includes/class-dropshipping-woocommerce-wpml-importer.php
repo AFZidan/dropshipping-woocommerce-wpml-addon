@@ -475,7 +475,8 @@ if ( class_exists( 'WCML_Editor_UI_Product_Job', false ) ){
 
 
 function wpml_dropship_disable_fibu_plugin2($value, $option) {
-	add_filter( "option_knawatfibu_options", "wpml_dropship_disable_fibu_plugin",  99, 2 );
+	add_filter( "option_knawatfibu_options", "wpml_dropship_disable_fibu_plugin",  0, 2 );
+	add_filter( "pre_option_knawatfibu_options", "wpml_dropship_disable_fibu_plugin",  0, 2 );
 	return $value;
 }
 
