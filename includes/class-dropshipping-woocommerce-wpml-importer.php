@@ -56,32 +56,31 @@ if ( class_exists( 'WCML_Editor_UI_Product_Job', false ) ){
 
 			if ( ! empty( $product_ID ) ) {
 
-				global $sitepress,$wpdb,$woocommerce_wpml;
+				global $sitepress;
 
-				$language_info			= icl_get_languages();
-				$language_details		= apply_filters( 'wpml_post_language_details', NULL, $product_ID ) ;
-				$active_language_code	= $sitepress->get_default_language();
-				unset($language_info[$active_language_code]);
+				$activeLanguages			= icl_get_languages();
+				$defaultLang	= $sitepress->get_default_language();
+				unset($activeLanguages[$defaultLang]);
 				
 				$categories			= $single_product->categories;
 				$attributes			= $single_product->attributes;
 				$tids				= $this->get_translation_id($sitepress,$product_ID);
 				$import_prd_lang 	= array_keys((array)$single_product->name);
 
-				if(!empty($language_info)){
+				if(!empty($activeLanguages)){
 
 					$single_productData 	= array();
 
-					foreach($language_info as $lang_key => $lang_info){
+					foreach($activeLanguages as $lang_key => $lang_info){
 
 						if(in_array($lang_key,$import_prd_lang)){
-							
-							$post_title 								= sanitize_text_field($single_product->name->$lang_key);
+							$name = isset($single_product->name->$lang_key)?$single_product->name->$lang_key:reset($single_product->name);
+							$post_title 								= sanitize_text_field($name);
 							$post_title 								= iconv(mb_detect_encoding($post_title),'UTF-8',$post_title);
-							$single_productData[md5('title')]			= $post_title;
+							$single_productData[md5('title')]= $post_title;
 							$single_productData[md5('slug')]			= sanitize_title($post_title);
 
-							$post_content								= $single_product->description->$lang_key;
+							$post_content								= isset($single_product->description->$lang_key)?$single_product->description->$lang_key:reset($single_product->description);
 							$post_content 								= iconv(mb_detect_encoding($post_content),'UTF-8',$post_content);
 							$single_productData[md5('product_content')]	= iconv('UTF-8','ASCII//TRANSLIT',$post_content);
 							$single_productData[md5('product_excerpt')] = '';
@@ -92,16 +91,16 @@ if ( class_exists( 'WCML_Editor_UI_Product_Job', false ) ){
 							$job_details['job_type']					= 'post_product';
 							$job_details['job_post_id']					= $product_ID;
 							$job_details['target']						= $lang_key;
-							$job_details['source_lang']					= $active_language_code;
+							$job_details['source_lang']					= $defaultLang;
 							$job_details['job_post_type']				= 'post_product';
 							
-							$categories_data_array 						= $this->product_taxonomy_data_array($categories,$active_language_code,$lang_key);
-							$attributes_data_array 						= $this->product_attributes_data_array($product_ID,$attributes,$active_language_code,$lang_key);
+							$categories_data_array 						= $this->product_taxonomy_data_array($categories,$defaultLang,$lang_key);
+							$attributes_data_array 						= $this->product_attributes_data_array($product_ID,$attributes,$defaultLang,$lang_key);
 							$merge_data									=  array_merge($single_productData,$categories_data_array,$attributes_data_array);
 							
-							$categories_data 					= $this->product_taxonomy_data($categories,$active_language_code,$lang_key);
-							$attributes_data 					= $this->product_attributes_data($product_ID,$attributes,$active_language_code,$lang_key);
-							$post_data_string					= $this->post_data_string($single_product,$product_ID,$jobID,$attributes_data,$categories_data,$active_language_code,$lang_key);
+							$categories_data 					= $this->product_taxonomy_data($categories,$defaultLang,$lang_key);
+							$attributes_data 					= $this->product_attributes_data($product_ID,$attributes,$defaultLang,$lang_key);
+							$post_data_string					= $this->post_data_string($single_product,$product_ID,$jobID,$attributes_data,$categories_data,$defaultLang,$lang_key);
 							
 							$_POST['data']							= $post_data_string;
 							
@@ -136,13 +135,13 @@ if ( class_exists( 'WCML_Editor_UI_Product_Job', false ) ){
 		/**
 		 * Create product category/taxonomy string
 		 */
-		public function product_taxonomy_data( $categories, $active_language_code, $lang_key ) {
+		public function product_taxonomy_data( $categories, $defaultLang, $lang_key ) {
 			if ( ! empty( $categories ) ) {
 				$taxonomy_string = '';
 				foreach ( $categories as $category ) {
 
-						$category_name          = $category->name->$active_language_code;
-						$category_trans_name    = $category->name->$lang_key;
+						$category_name          = isset($category->name->$defaultLang)?$category->name->$defaultLang:reset($category->name);
+						$category_trans_name    = isset($category->name->$lang_key)?$category->name->$lang_key:reset($category->name);
 						$category_treeNodeLevel = $category->treeNodeLevel;
 						$term_data              = get_term_by( 'name', $category_name, 'product_cat' );
 
@@ -162,13 +161,13 @@ if ( class_exists( 'WCML_Editor_UI_Product_Job', false ) ){
 		/**
 		 * Create product category/taxonomy array
 		 */
-		public function product_taxonomy_data_array( $categories, $active_language_code, $lang_key ) {
+		public function product_taxonomy_data_array( $categories, $defaultLang, $lang_key ) {
 			if ( ! empty( $categories ) ) {
 				$taxonomy_array = array();
 				foreach ( $categories as $category ) {
 
-						$category_name          = $category->name->$active_language_code;
-						$category_trans_name    = $category->name->$lang_key;
+						$category_name          = isset($category->name->$defaultLang)?$category->name->$defaultLang:reset($category->name);
+						$category_trans_name    = isset($category->name->$lang_key)?$category->name->$lang_key:reset($category->name);
 						$category_treeNodeLevel = $category->treeNodeLevel;
 						$term_data              = get_term_by( 'name', $category_name, 'product_cat' );
 
@@ -188,17 +187,17 @@ if ( class_exists( 'WCML_Editor_UI_Product_Job', false ) ){
 		/**
 		 * Create product attribute/variation string.
 		 */
-		public function product_attributes_data( $product_ID, $attributes_list, $active_language_code, $lang_key ) {
+		public function product_attributes_data( $product_ID, $attributes_list, $defaultLang, $lang_key ) {
 			$variation_string = '';
 			$attribute_string = '';
 			global $product;
 
 			if ( ! empty( $attributes_list ) ) {
 				foreach ( $attributes_list as $attributes ) {
-
-					$att_name        = sanitize_title( $attributes->name->$active_language_code );
-					$att_format_name = sanitize_title( $attributes->name->$active_language_code ) . '_name';
-					$att_trans_name  = $attributes->name->$lang_key;
+					$name = isset($attributes->name->$defaultLang)?$attributes->name->$defaultLang:reset($attributes->name);
+					$att_name        = sanitize_title( $name );
+					$att_format_name = sanitize_title( $name ) . '_name';
+					$att_trans_name  = isset($attributes->name->$lang_key)?$attributes->name->$lang_key:reset($attributes->name);
 					$attr_options    = $attributes->options;
 
 					$attribute_string .= "fields[$att_format_name][data]=" . $att_trans_name;
@@ -209,7 +208,7 @@ if ( class_exists( 'WCML_Editor_UI_Product_Job', false ) ){
 						foreach ( $attr_options as $key => $variation ) {
 
 								$att_tran_value = $variation->$lang_key;
-								$att_orig_value = $variation->$active_language_code;
+								$att_orig_value = $variation->$defaultLang;
 								$att_var_data   = get_term_by( 'name', $att_orig_value, 'pa_' . $att_name );
 
 								$attribute_string .= "fields[$att_name][data]=" . $att_tran_value;
@@ -222,7 +221,7 @@ if ( class_exists( 'WCML_Editor_UI_Product_Job', false ) ){
 						foreach ( $attr_options as $key => $variation ) {
 
 								$att_tran_value = $variation->$lang_key;
-								$att_orig_value = $variation->$active_language_code;
+								$att_orig_value = $variation->$defaultLang;
 								$var_data       = get_term_by( 'name', $att_orig_value, 'pa_' . $att_name );
 
 							if ( ! empty( $var_data ) ) {
@@ -243,7 +242,7 @@ if ( class_exists( 'WCML_Editor_UI_Product_Job', false ) ){
 		/**
 		 * Create product attribute/variation array.
 		 */
-		public function product_attributes_data_array( $product_ID, $attributes_list, $active_language_code, $lang_key ) {
+		public function product_attributes_data_array( $product_ID, $attributes_list, $defaultLang, $lang_key ) {
 			
 			$variation_array = array();
 			$attribute_array = array();
@@ -251,10 +250,10 @@ if ( class_exists( 'WCML_Editor_UI_Product_Job', false ) ){
 
 			if ( ! empty( $attributes_list ) ) {
 				foreach ( $attributes_list as $attributes ) {
-
-					$att_name        = sanitize_title( $attributes->name->$active_language_code );
-					$att_format_name = sanitize_title( $attributes->name->$active_language_code ) . '_name';
-					$att_trans_name  = $attributes->name->$lang_key;
+					$name = isset($attributes->name->$defaultLang)?$attributes->name->$defaultLang:reset($attributes->name);
+					$att_name        = sanitize_title( $name );
+					$att_format_name = sanitize_title( $name ) . '_name';
+					$att_trans_name  = isset($attributes->name->$lang_key)?$attributes->name->$lang_key:reset($attributes->name);
 					$attr_options    = $attributes->options;
 
 					$attribute_array[md5($att_format_name)]  = $att_trans_name;
@@ -262,8 +261,8 @@ if ( class_exists( 'WCML_Editor_UI_Product_Job', false ) ){
 					if ( ! empty( $attr_options ) ) {
 						foreach ( $attr_options as $key => $variation ) {
 
-								$att_tran_value = $variation->$lang_key;
-								$att_orig_value = $variation->$active_language_code;
+								$att_tran_value = isset($variation->$lang_key)?$variation->$lang_key:reset($variation);
+								$att_orig_value = isset($variation->$defaultLang)?$variation->$defaultLang:reset($variation);
 								$att_var_data   = get_term_by( 'name', $att_orig_value, 'pa_' . $att_name );
 
 								$attribute_array[md5($att_name)]  = $att_tran_value;
@@ -274,7 +273,7 @@ if ( class_exists( 'WCML_Editor_UI_Product_Job', false ) ){
 						foreach ( $attr_options as $key => $variation ) {
 
 								$att_tran_value = $variation->$lang_key;
-								$att_orig_value = $variation->$active_language_code;
+								$att_orig_value = $variation->$defaultLang;
 								$var_data       = get_term_by( 'name', $att_orig_value, 'pa_' . $att_name );
 
 							if ( ! empty( $var_data ) ) {
@@ -318,7 +317,7 @@ if ( class_exists( 'WCML_Editor_UI_Product_Job', false ) ){
 	/**
 		 * Create post data string from all the data
 		 */
-		public function post_data_string( $single_product, $product_ID, $jobID, $attributes_data, $categories_data, $active_language_code, $lang_key ) {
+		public function post_data_string( $single_product, $product_ID, $jobID, $attributes_data, $categories_data, $defaultLang, $lang_key ) {
 
 			$categories_data = !empty($categories_data) ? $categories_data : "";
 			$attributes_data = !empty($attributes_data) ? $attributes_data : "";
@@ -333,7 +332,7 @@ if ( class_exists( 'WCML_Editor_UI_Product_Job', false ) ){
 			$purchase_note   = 'fields[_purchase_note][data]=&fields[_purchase_note][tid]=0&fields[_purchase_note][format]=base64&';
 
 			$starting_string = $title . $slug . $product_content . $product_excerpt . $purchase_note;
-			$postData        = 'job_post_type=post_product&job_post_id=' . $product_ID . '&job_id=' . $jobID . '&source_lang=' . $active_language_code . '&target_lang=' . $lang_key . '&' . $starting_string . '&' . $attributes_data . $categories_data.'complete=on';
+			$postData        = 'job_post_type=post_product&job_post_id=' . $product_ID . '&job_id=' . $jobID . '&source_lang=' . $defaultLang . '&target_lang=' . $lang_key . '&' . $starting_string . '&' . $attributes_data . $categories_data.'complete=on';
 			
 			return $postData;
 		}
